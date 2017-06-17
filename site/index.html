@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <style>
+    body {
+      background: url("bg.jpg") repeat;
+    }
+  </style>
+  <script src="config.js"></script>
+  <script src="abi.js"></script>
+</head>
+<body>
+  <center>
+    <h1 id="header"></h1>
+    <img title="It's flippening!" src="dolphins.gif">
+  </center>
+
+  <br>
+  <hr>
+
+  <center>
+    <h2 id="subheader"></h2>
+    <p id="error" style="color: red; font-weight: bold"></p>
+    <table>
+      <tbody>
+        <tr>
+          <td>Name:</td>
+          <td>
+            <input type="text" id="name" disabled/>
+          </td>
+        </tr>
+        <tr>
+          <td>Message:</td>
+          <td>
+            <textarea id="body" cols="30" rows="10" disabled></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>
+            <button id="submit" disabled>Submit</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </center>
+
+  <hr>
+
+  <div id="posts">
+  </div>
+
+  <script>
+    function isConnected () {
+      return window.web3 && window.web3.eth.accounts.length > 0;
+    }
+
+    function showError (msg) {
+      var error = document.getElementById("error");
+      error.textContent = msg;
+    }
+
+    function addPost (name, body) {
+      var posts = document.getElementById("posts");
+
+      var post = document.createElement("div");
+      var header = document.createElement("h4");
+      var content = document.createElement("p");
+
+      post.style.width = "400px";
+      post.style.padding = "5px";
+      post.style.backgroundColor = "white";
+      post.style.margin = "0 auto";
+      post.style.marginBottom = "10px";
+
+      post.appendChild(header);
+      post.appendChild(content);
+
+      posts.insertBefore(post, posts.firstChild);
+
+      header.textContent = "From: " + name;
+      content.textContent = body;
+    }
+
+    function newPost (contract) {
+      var name = document.getElementById("name").value;
+      var body = document.getElementById("body").value;
+
+      if (!name || !body) {
+        return showError("Name and message have to be filled in!");
+      }
+
+      contract.post(name, body, {from: web3.eth.accounts[0]});
+
+      document.getElementById("name").value = "";
+      document.getElementById("body").value = "";
+    }
+
+    function enableSubmit () {
+      var name = document.getElementById("name");
+      var body = document.getElementById("body");
+      var submit = document.getElementById("submit");
+
+      name.disabled = false;
+      body.disabled = false;
+      submit.disabled = false;
+    }
+
+    window.onload = function () {
+      document.title = TITLE;
+      document.getElementById("header").textContent = HEADER;
+      document.getElementById("subheader").textContent = SUBHEADER;
+
+      if (!isConnected()) {
+        return showError("Oops, looks like you are not connected with web3!");
+      }
+
+      enableSubmit();
+
+      var contract = web3.eth.contract(ABI).at(ADDRESS);
+      var events = contract.allEvents({fromBlock: 0, toBlock: "latest"});
+
+      events.watch(function (err, res) {
+        if (err) { return showError(err.message); }
+
+        addPost(res.args._name, res.args._body);
+      });
+
+      var submit = document.getElementById("submit");
+      submit.onclick = function () {
+        newPost(contract);
+      };
+    };
+  </script>
+</body>
+</html>
