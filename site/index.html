@@ -93,10 +93,12 @@
         return showError("Name and message have to be filled in!");
       }
 
-      contract.post(name, body, {from: web3.eth.accounts[0]});
+      contract.post(name, body, {from: web3.eth.accounts[0]}, function (err) {
+        if (err) { showError(err.message); }
 
-      document.getElementById("name").value = "";
-      document.getElementById("body").value = "";
+        document.getElementById("name").value = "";
+        document.getElementById("body").value = "";
+      });
     }
 
     function enableSubmit () {
