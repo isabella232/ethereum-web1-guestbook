@@ -109,15 +109,15 @@
       submit.disabled = false;
     }
 
-    window.onload = function () {
-      document.title = TITLE;
-      document.getElementById("header").textContent = HEADER;
-      document.getElementById("subheader").textContent = SUBHEADER;
-
+    function checkConnection () {
       if (!isConnected()) {
-        return showError("Oops, looks like you are not connected with web3!");
+        showError("Oops, looks like you are not connected with web3!");
+        return setTimeout(function () {
+          checkConnection();
+        }, 1000);
       }
 
+      showError("");
       enableSubmit();
 
       var contract = web3.eth.contract(ABI).at(ADDRESS);
@@ -133,6 +133,14 @@
       submit.onclick = function () {
         newPost(contract);
       };
+    }
+
+    window.onload = function () {
+      document.title = TITLE;
+      document.getElementById("header").textContent = HEADER;
+      document.getElementById("subheader").textContent = SUBHEADER;
+
+      checkConnection();
     };
   </script>
 </body>
